@@ -19,6 +19,7 @@ from typing import Union
 from threading import Thread, Event
 import time
 import json
+import re
 
 # Third-party modules
 from serial import Serial as PySerial
@@ -190,7 +191,9 @@ class Serial(Emitter):
             if len(data) > 0:
                 if self.emitAsDict:
                     data = {self.name: data}
-                self.emit("data", data)
+                if re.match(r'^\s*cur_lux:\s*(\d+)', data):
+                    value = re.search(r'\d+', data).group()
+                    self.emit("data", value)
                 return data
         except Exception as e:
             print(f"-> Serial - {self.name} :: {e}")
