@@ -39,10 +39,10 @@ class Buffer(Emitter):
         self.data = deque(maxlen=self.maxlen)
         if self.sampleTimeEnabled():
             self.time = deque(maxlen=self.maxlen)
-    
+
     def setNewLen(self, length:int):
         """It updates the length of the buffer.
-        
+
         :param length: new value of the length.
         """
         self.maxlen = length
@@ -66,7 +66,7 @@ class Buffer(Emitter):
     def isFull(self):
         """It checks if the buffer is full."""
         return len(self.data) == self.maxlen - 1
- 
+
     def sampleTimeEnabled(self):
         """It checks if the sample time is enabled."""
         return self.timed and self.time is not None
@@ -107,7 +107,7 @@ class Buffer(Emitter):
                 self.dt = dt
                 self.lastTime = currentTime
                 self.time.append(elapsedTime)
-    
+
     def notifyIsFull(self):
         """If the buffer is full it will emit an event signal."""
         if self.isFull():
@@ -122,7 +122,7 @@ class Buffer(Emitter):
 
     def append(self, value):
         """It appends a new value to the data list/deque.
-        
+
         :param value: new value to add to the data.
         """
         self.data.append(value)
@@ -145,7 +145,7 @@ class Buffer(Emitter):
 
     def fill(self, data:list):
         """It fills the current list of data, with a passed list/deque.
-        
+
         :param data: new data to update the internal data list/deque
         """
         self.data = deque(data)
@@ -154,13 +154,13 @@ class Buffer(Emitter):
 
     def load(self, filepath:str):
         """It loads data from a csv file.
-        
+
         :param filepath: file directory.
         """
         df = pd.read_csv(filepath, index_col=0)
         data = df[self.name].values
         self.fill(data)
-    
+
 
 class MultipleBuffers(Emitter):
     """A class for manage multiples buffer at same time.
@@ -173,14 +173,14 @@ class MultipleBuffers(Emitter):
         super().__init__(*args, **kwargs)
         self.variables = {}
         self.mainKey = ""
-        for i in range(len(variables)): 
+        for i in range(len(variables)):
             key = variables[i]
             if i == 0:
                 self.mainKey = key
             buffer = Buffer(name=key, timed=False, maxlen=maxlen, *args, **kwargs)
             self.variables[key] = buffer
 
-        self.defaultMaxLen = maxlen   
+        self.defaultMaxLen = maxlen
         self.maxlen = maxlen
         self.timed = timed
         self.time = None
@@ -190,13 +190,13 @@ class MultipleBuffers(Emitter):
 
         self.initialTime = 0
         self.lastTime = 0
-    
+
     def __getitem__(self, key):
         return self.variables[key]
-    
+
     def __len__(self):
         return len(self.variables)
-    
+
     def keys(self):
         return self.variables.keys()
 
@@ -250,7 +250,7 @@ class MultipleBuffers(Emitter):
 
     def appendAll(self, data:dict):
         """It appends multiple variables values at the same time passing a dictinary with the keys/names and the corresponding values.
-        
+
         :param data: a dictinary with new variables values.
         """
         error = False
@@ -280,7 +280,7 @@ class MultipleBuffers(Emitter):
         """It clears every variable buffer."""
         for buffer in self.variables.values():
             buffer.clear()
-    
+
     def getDataOfAll(self):
         """It returns a dictionary with all data saved so far."""
         data = {}
@@ -311,7 +311,7 @@ class MultipleBuffers(Emitter):
             data = self.getDataOfAll()
         df = pd.DataFrame(data)
         df.to_csv(name)
-    
+
     def load(self, filepath:str):
         """It loads all variables contained on one single CSV file."""
         try:
@@ -330,7 +330,7 @@ class MultipleBuffers(Emitter):
         """It saves the data of only one buffer/variable."""
         if key in self.variables:
             self.variables[key].save(filepath, name)
-    
+
     def infoLen(self):
         """It displays info about length of the signals."""
         print(" __________ SHOWING LEN INFO _____________")
@@ -360,7 +360,7 @@ class MultipleBuffers(Emitter):
 # b = MultipleBuffers(variables=v, timed=True, autoclear=True, maxlen=L)
 # print(T)
 
-# for i in range(N):  
+# for i in range(N):
 #     data = {k:random.randint(1, 10) for k in v}
 #     t0 = time.time()
 #     b.appendAll(data)

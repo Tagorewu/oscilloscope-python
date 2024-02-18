@@ -14,6 +14,9 @@ pathUI = os.path.join(pathUI, 'gui', 'main.ui')
 
 
 PEN_COLOR = (0, 190, 255)
+PEN_COLOR2 = (190, 0, 255)
+PEN_COLOR3 = (190, 255, 0)
+
 FPS = 15
 
 
@@ -30,13 +33,20 @@ class Oscilloscope(QMainWindow):
 
     def __configureBuffer(self):
         """Configures the buffer."""
-        self.buffer = Buffer(maxlen=200)
+        self.buffer = Buffer(maxlen=300)
+        self.buffer2 = Buffer(maxlen=300)
+        self.buffer3 = Buffer(maxlen=300)
 
     def __configureGraph(self):
         """Configures the signal graph."""
         self.graph.showGrid(x=True, y=True)
-        self.graph.setYRange(0, 5)
+        self.graph.setYRange(0, 255)
+        self.graph.setXRange(0, 60)
+
         self.curve = self.graph.plot(pen=PEN_COLOR)
+        self.curve2 = self.graph.plot(pen=PEN_COLOR2)
+        self.curve3 = self.graph.plot(pen=PEN_COLOR3)
+
         self.winSize.valueChanged.connect(lambda value: self.buffer.setNewLen(value))
         self.graphTimer = QTimer()
         self.graphTimer.timeout.connect(self.updateGraph)
@@ -54,6 +64,7 @@ class Oscilloscope(QMainWindow):
         self.serial.on('connection', self.updateSerialConnectionStatus)
         self.serial.on('ports', self.updateListOfPorts)
         self.serial.on('data', self.updateBuffer)
+
         self.updateListOfPorts(self.serial.ports())
 
     def __configureTimers(self):
@@ -75,18 +86,22 @@ class Oscilloscope(QMainWindow):
 
     def updateBuffer(self, data: str):
         """Updates signal buffer values."""
-        self.buffer.append(float(data))
+        val = [int(num) for num in data.split(",")]
+        self.buffer.append(float(val[0]))
+        self.buffer2.append(float(val[1])/10)
+        self.buffer3.append(float(val[2])/10)
+
         self.frequencyLabelTimer.update()
         self.samplerTimerCounter.update()
 
     def updateGraph(self):
         """Plots the signal over the corresponding GUI element."""
-        data = self.buffer.getData()
-        self.curve.setData(data)
-
+        self.curve.setData(self.buffer.getData())
+        self.curve2.setData(self.buffer2.getData())
+        self.curve3.setData(self.buffer3.getData())
         # When the buffer is full clear it
-        if self.buffer.isFull():
-            self.buffer.clear()
+        #if self.buffer.isFull():
+            #self.buffer.clear()
 
     def updatePortDevice(self):
         """Updates a new value for the port device."""

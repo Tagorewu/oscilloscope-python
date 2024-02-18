@@ -191,9 +191,11 @@ class Serial(Emitter):
             if len(data) > 0:
                 if self.emitAsDict:
                     data = {self.name: data}
-                if re.match(r'^\s*cur_lux:\s*(\d+)', data):
-                    value = re.search(r'\d+', data).group()
-                    self.emit("data", value)
+                else:
+                    match = re.match(r'osc: (.*)', data)
+                    if match:
+                        value = match.group(1)
+                        self.emit("data", value)
                 return data
         except Exception as e:
             print(f"-> Serial - {self.name} :: {e}")
